@@ -16,7 +16,6 @@ from torch.utils.data import DataLoader
 # Custom includes
 from dataloaders import davis_2016 as db
 from dataloaders import custom_transforms as tr
-from util import visualize as viz
 import scipy.misc as sm
 import networks.vgg_osvos as vo
 from layers.osvos_layers import class_balanced_cross_entropy_loss
@@ -63,6 +62,7 @@ if gpu_id >= 0:
 
 # Visualize the network
 if vis_net:
+    from util import visualize as viz
     x = torch.randn(1, 3, 480, 854)
     x = Variable(x)
     if gpu_id >= 0:
