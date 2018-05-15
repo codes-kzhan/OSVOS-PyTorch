@@ -5,7 +5,6 @@ import os
 import socket
 import timeit
 from datetime import datetime
-from tensorboardX import SummaryWriter
 
 # PyTorch includes
 import torch
@@ -57,10 +56,6 @@ gpu_id = 0
 net = vo.OSVOS(pretrained=0)
 net.load_state_dict(torch.load(os.path.join(save_dir, parentModelName+'_epoch-'+str(parentEpoch-1)+'.pth'),
                                map_location=lambda storage, loc: storage))
-
-# Logging into Tensorboard
-log_dir = os.path.join(save_dir, 'runs', datetime.now().strftime('%b%d_%H-%M-%S') + '_' + socket.gethostname()+'-'+seq_name)
-writer = SummaryWriter(log_dir=log_dir)
 
 if gpu_id >= 0:
     torch.cuda.set_device(device=gpu_id)
@@ -139,7 +134,7 @@ for epoch in range(0, nEpochs):
 
             print('[Epoch: %d, numImages: %5d]' % (epoch+1, ii + 1))
             print('Loss: %f' % running_loss_tr)
-            writer.add_scalar('data/total_loss_epoch', running_loss_tr, epoch)
+            print('data/total_loss_epoch {} {}'.format(running_loss_tr, epoch))
 
         # Backward the averaged gradient
         loss /= nAveGrad
@@ -148,7 +143,7 @@ for epoch in range(0, nEpochs):
 
         # Update the weights once in nAveGrad forward passes
         if aveGrad % nAveGrad == 0:
-            writer.add_scalar('data/total_loss_iter', loss.data[0], ii + num_img_tr * epoch)
+            print('data/total_loss_iter {} {}'.format(loss.data[0], ii + num_img_tr * epoch))
             optimizer.step()
             optimizer.zero_grad()
             aveGrad = 0
