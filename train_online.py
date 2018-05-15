@@ -52,7 +52,8 @@ parentModelName = 'parent'
 gpu_id = 0
 
 # Network definition
-net = vo.OSVOS(pretrained=0)
+# TODO(shelhamer) double-check alignment with our Caffe VGG arch
+net = vo.OSVOS(pretrained=0)  # parent network pre-trained on DAVIS fg-bg
 net.load_state_dict(torch.load(os.path.join(save_dir, parentModelName+'_epoch-'+str(parentEpoch-1)+'.pth'),
                                map_location=lambda storage, loc: storage))
 
