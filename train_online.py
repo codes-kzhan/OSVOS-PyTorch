@@ -58,7 +58,7 @@ net.load_state_dict(torch.load(os.path.join(save_dir, parentModelName+'_epoch-'+
                                map_location=lambda storage, loc: storage))
 
 if gpu_id >= 0:
-    torch.cuda.set_device(device=gpu_id)
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
     net.cuda()
 
 # Visualize the network
