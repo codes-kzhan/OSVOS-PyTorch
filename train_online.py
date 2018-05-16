@@ -204,5 +204,3 @@ for ii, sample_batched in enumerate(testloader):
             ax_arr[1].imshow(gt_)
             ax_arr[2].imshow(im_normalize(pred))
             plt.pause(0.001)
-
-writer.close()
