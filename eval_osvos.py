@@ -1,10 +1,14 @@
-import os
+import sys, os
 import numpy as np
 from PIL import Image
+from setproctitle import setproctitle
+
+from train_online import train_osvos_online
 
 data_root = './data/davis'
-count = 5
-gpu_id = 7
+count = int(sys.argv[1])
+gpu_id = int(sys.argv[2])
+
 
 # generate list of video-instance tuples to evaluate on
 videos = open(f"{data_root}/ImageSets/2017/val.txt").read().splitlines()
@@ -16,15 +20,13 @@ for vid in videos:
     vid_inst += [(vid, inst) for inst in instances]
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 count_ = 'dense' if count == -1 else '{}sparse'.format(str(count))
-os.environ['SAVE_DIR'] = './experiments/{}'.format(count_)
-os.environ['COUNT'] = str(count)
+save_dir = './experiments/{}-short'.format(count_)
+setproctitle('OSVOS eval {}'.format(count_))
+
 for (vid, inst) in vid_inst:
     print("Evaluating video {}, instance {}, with {} points on first frame.".format(vid, inst, count_))
-    os.environ['SEQ_NAME'] = str(vid)
-    os.environ['INST'] = str(inst)
-    exec(open("./train_online.py").read())
+    train_osvos_online(vid, inst, count, save_dir, gpu_id)
 
 
 
