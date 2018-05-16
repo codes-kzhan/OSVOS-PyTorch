@@ -49,7 +49,7 @@ vis_net = 0  # Visualize the network?
 vis_res = 0  # Visualize the results?
 nAveGrad = 5  # Average the gradient every nAveGrad iterations
 nEpochs = 2000 * nAveGrad  # Number of epochs for training
-snapshot = nEpochs  # Store a model every snapshot epochs
+snapshots = [iter_ * nAveGrad for iter_ in [1, 10, 100, 1000]] # Store a model every snapshot epochs
 parentEpoch = 240
 
 # Parameters in p are used for the name of the model
@@ -161,9 +161,8 @@ for epoch in range(0, nEpochs):
             aveGrad = 0
 
     # Save the model
-    if epoch in [x - 1 for x in [1, 10, 100, 1000]]:
-        torch.save(net.state_dict(), os.path.join(save_dir, seq_name + '_epoch-'+str(epoch+1) + '.pth'))
-        torch.save(net.state_dict(), os.path.join(f"{save_dir}/{seq_name}_{count}sparse-1shot-epoch-{str(epoch+1)}.pth"))
+    if epoch + 1 in snapshots:
+        torch.save(net.state_dict(), os.path.join("{save_dir}/{seq_name}_{count}sparse-1shot-epoch-{epoch}.pth".format(save_dir=save_dir, seq_name=seq_name, count=count, epoch=epoch + 1)))
 
 stop_time = timeit.default_timer()
 print('Online training time: ' + str(stop_time - start_time))
