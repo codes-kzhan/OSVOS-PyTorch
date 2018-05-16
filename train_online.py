@@ -45,7 +45,7 @@ parentEpoch = 240
 p = {
     'trainBatch': 1,  # Number of Images in each mini-batch
     }
-seed = 0
+seed = 1337
 
 parentModelName = 'parent'
 # Select which GPU, -1 if CPU
