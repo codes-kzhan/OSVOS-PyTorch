@@ -119,14 +119,14 @@ class DAVIS2017(Dataset):
             # make fixed, sparse label
             # label will be mostly ignore (255),
             # with sparse positive (1) and negative (0) annotations
-            # TODO(shelhamer) set sparsity with flag
-            if self.sparse_label is None:
-                self.sparse_label = np.full_like(gt, 255)
-                for lbl in (0, 1):
-                    mask_idx = np.where(gt.flat == lbl)[0]
-                    sparse_idx = np.random.choice(mask_idx, size=self.count, replace=False)
-                    self.sparse_label.flat[sparse_idx] = lbl
-            gt = self.sparse_label
+            if self.count != -1:
+                if self.sparse_label is None:
+                    self.sparse_label = np.full_like(gt, 255)
+                    for lbl in (0, 1):
+                        mask_idx = np.where(gt.flat == lbl)[0]
+                        sparse_idx = np.random.choice(mask_idx, size=self.count, replace=False)
+                        self.sparse_label.flat[sparse_idx] = lbl
+                gt = self.sparse_label
 
         return img, gt
 
