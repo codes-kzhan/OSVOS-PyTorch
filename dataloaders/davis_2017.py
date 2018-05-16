@@ -19,7 +19,8 @@ class DAVIS2017(Dataset):
                  transform=None,
                  meanval=(104.00699, 116.66877, 122.67892),
                  seq_name=None,
-                 inst=1):
+                 inst=1,
+                 count=5):
         """Loads image to label pairs for tool pose estimation
         db_root_dir: dataset directory with subfolders "JPEGImages" and "Annotations"
         """
@@ -30,6 +31,7 @@ class DAVIS2017(Dataset):
         self.meanval = meanval
         self.seq_name = seq_name
         self.inst = inst
+        self.count = count
 
         if self.train:
             fname = 'train_seqs'
@@ -119,11 +121,10 @@ class DAVIS2017(Dataset):
             # with sparse positive (1) and negative (0) annotations
             # TODO(shelhamer) set sparsity with flag
             if self.sparse_label is None:
-                points_per_class = 5
                 self.sparse_label = np.full_like(gt, 255)
                 for lbl in (0, 1):
                     mask_idx = np.where(gt.flat == lbl)[0]
-                    sparse_idx = np.random.choice(mask_idx, size=points_per_class, replace=False)
+                    sparse_idx = np.random.choice(mask_idx, size=self.count, replace=False)
                     self.sparse_label.flat[sparse_idx] = lbl
             gt = self.sparse_label
 

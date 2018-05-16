@@ -31,7 +31,13 @@ else:
 if 'INST' not in os.environ.keys():
     inst = 1
 else:
-    inst = str(os.environ['INST'])
+    inst = int(os.environ['INST'])
+
+if 'COUNT' not in os.environ.keys():
+    count = 5
+else:
+    count = int(os.environ['COUNT'])
+
 
 db_root_dir = Path.db_root_dir()
 save_dir = Path.save_root_dir()
@@ -98,11 +104,11 @@ composed_transforms = transforms.Compose([tr.RandomHorizontalFlip(),
                                           tr.ScaleNRotate(rots=(-30, 30), scales=(.75, 1.25)),
                                           tr.ToTensor()])
 # Training dataset and its iterator
-db_train = db.DAVIS2017(train=True, db_root_dir=db_root_dir, transform=composed_transforms, seq_name=seq_name, inst=inst)
+db_train = db.DAVIS2017(train=True, db_root_dir=db_root_dir, transform=composed_transforms, seq_name=seq_name, inst=inst, count=count)
 trainloader = DataLoader(db_train, batch_size=p['trainBatch'], shuffle=True, num_workers=1)
 
 # Testing dataset and its iterator
-db_test = db.DAVIS2017(train=False, db_root_dir=db_root_dir, transform=tr.ToTensor(), seq_name=seq_name, inst=inst)
+db_test = db.DAVIS2017(train=False, db_root_dir=db_root_dir, transform=tr.ToTensor(), seq_name=seq_name, inst=inst, count=count)
 testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
 
 
@@ -155,8 +161,9 @@ for epoch in range(0, nEpochs):
             aveGrad = 0
 
     # Save the model
-    if (epoch % snapshot) == snapshot - 1 and epoch != 0:
-        torch.save(net.state_dict(), os.path.join(save_dir, seq_name + '_epoch-'+str(epoch) + '.pth'))
+    if epoch in [x - 1 for x in [1, 10, 100, 1000]]:
+        torch.save(net.state_dict(), os.path.join(save_dir, seq_name + '_epoch-'+str(epoch+1) + '.pth'))
+        torch.save(net.state_dict(), os.path.join(f"{save_dir}/{seq_name}_{count}sparse-1shot-epoch-{str(epoch+1)}.pth"))
 
 stop_time = timeit.default_timer()
 print('Online training time: ' + str(stop_time - start_time))
