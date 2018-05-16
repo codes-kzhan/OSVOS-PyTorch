@@ -4,20 +4,22 @@ import os
 import numpy as np
 import cv2
 from scipy.misc import imresize
+from PIL import Image
 
 from dataloaders.helpers import *
 from torch.utils.data import Dataset
 
 
-class DAVIS2016(Dataset):
-    """DAVIS 2016 dataset constructed using the PyTorch built-in functionalities"""
+class DAVIS2017(Dataset):
+    """DAVIS 2017 dataset constructed using the PyTorch built-in functionalities"""
 
     def __init__(self, train=True,
                  inputRes=None,
-                 db_root_dir='/media/eec/external/Databases/Segmentation/DAVIS-2016',
+                 db_root_dir='data/davis',
                  transform=None,
                  meanval=(104.00699, 116.66877, 122.67892),
-                 seq_name=None):
+                 seq_name=None,
+                 inst=1):
         """Loads image to label pairs for tool pose estimation
         db_root_dir: dataset directory with subfolders "JPEGImages" and "Annotations"
         """
@@ -27,6 +29,7 @@ class DAVIS2016(Dataset):
         self.transform = transform
         self.meanval = meanval
         self.seq_name = seq_name
+        self.inst = inst
 
         if self.train:
             fname = 'train_seqs'
@@ -92,7 +95,8 @@ class DAVIS2016(Dataset):
         """
         img = cv2.imread(os.path.join(self.db_root_dir, self.img_list[idx]))
         if self.labels[idx] is not None:
-            label = cv2.imread(os.path.join(self.db_root_dir, self.labels[idx]), 0)
+            label = Image.open(os.path.join(self.db_root_dir, self.labels[idx]))
+
         else:
             gt = np.zeros(img.shape[:-1], dtype=np.uint8)
 
@@ -106,7 +110,9 @@ class DAVIS2016(Dataset):
 
         if self.labels[idx] is not None:
             gt = np.array(label, dtype=np.uint8)
-            gt[gt == 255] = 1  # fg is 255 in DAVIS'16
+            # mask out given instance in annotation
+            gt[np.logical_and(gt != self.inst, gt != 255) ] = 0
+            gt[gt == self.inst] = 1
 
             # make fixed, sparse label
             # label will be mostly ignore (255),
@@ -137,7 +143,7 @@ if __name__ == '__main__':
 
     transforms = transforms.Compose([tr.RandomHorizontalFlip(), tr.Resize(scales=[0.5, 0.8, 1]), tr.ToTensor()])
 
-    dataset = DAVIS2016(db_root_dir='/media/eec/external/Databases/Segmentation/DAVIS-2016',
+    dataset = DAVIS2017(db_root_dir='/media/eec/external/Databases/Segmentation/DAVIS-2017',
                         train=True, transform=transforms)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1)
 
