@@ -43,7 +43,7 @@ class ScaleNRotate(object):
             assert(center != 0)  # Strange behaviour warpAffine
             M = cv2.getRotationMatrix2D(center, rot, sc)
 
-            if ((tmp == 0) | (tmp == 1)).all():
+            if tmp.ndim == 2:
                 flagval = cv2.INTER_NEAREST
             else:
                 flagval = cv2.INTER_CUBIC

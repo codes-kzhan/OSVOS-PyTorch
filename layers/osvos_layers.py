@@ -25,6 +25,11 @@ def class_balanced_cross_entropy_loss(output, label, size_average=True, batch_av
     Tensor that evaluates the loss
     """
 
+    # mask out ignored pixels
+    mask = (label != 255).byte()
+    output = output[mask]
+    label = label[mask]
+
     labels = label.float()
 
     num_labels_pos = torch.sum(labels)
