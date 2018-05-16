@@ -43,6 +43,11 @@ if 'SAVE_DIR' not in os.environ.keys():
 else:
     save_dir = str(os.environ['SAVE_DIR'])
 
+# Select which GPU, -1 if CPU
+if 'GPU' not in os.environ.keys():
+    gpu_id = 0
+else:
+    gpu_id = str(os.environ['GPU'])
 
 db_root_dir = Path.db_root_dir()
 
@@ -64,8 +69,6 @@ p = {
 seed = 1337
 
 parentModelName = 'parent'
-# Select which GPU, -1 if CPU
-gpu_id = 0
 
 # Network definition
 # TODO(shelhamer) double-check alignment with our Caffe VGG arch
@@ -172,7 +175,7 @@ for epoch in range(0, nEpochs):
 
         print('Testing Network')
         # outputs dir
-        save_dir_res = os.path.join(save_dir, "iter{}/{}_{}".format(str((epoch + 1)/ nAveGrad), seq_name, inst))
+        save_dir_res = os.path.join(save_dir, "iter{}/{}_{}".format(str((epoch + 1)// nAveGrad), seq_name, inst))
         if not os.path.exists(save_dir_res):
             os.makedirs(save_dir_res)
 
