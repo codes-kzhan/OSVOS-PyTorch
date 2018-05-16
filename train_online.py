@@ -38,10 +38,15 @@ if 'COUNT' not in os.environ.keys():
 else:
     count = int(os.environ['COUNT'])
 
+if 'SAVE_DIR' not in os.environ.keys():
+    save_dir = './experiments'
+else:
+    save_dir = str(os.environ['SAVE_DIR'])
+
 
 db_root_dir = Path.db_root_dir()
-save_dir = Path.save_root_dir()
 
+# snapshot dir
 if not os.path.exists(save_dir):
     os.makedirs(os.path.join(save_dir))
 
@@ -65,7 +70,7 @@ gpu_id = 0
 # Network definition
 # TODO(shelhamer) double-check alignment with our Caffe VGG arch
 net = vo.OSVOS(pretrained=0)  # parent network pre-trained on DAVIS fg-bg
-net.load_state_dict(torch.load(os.path.join(save_dir, parentModelName+'_epoch-'+str(parentEpoch-1)+'.pth'),
+net.load_state_dict(torch.load(os.path.join('./models', parentModelName+'_epoch-'+str(parentEpoch-1)+'.pth'),
                                map_location=lambda storage, loc: storage))
 
 if gpu_id >= 0:
@@ -162,56 +167,47 @@ for epoch in range(0, nEpochs):
 
     # Save the model
     if epoch + 1 in snapshots:
-        torch.save(net.state_dict(), os.path.join("{save_dir}/{seq_name}_{count}sparse-1shot-epoch-{epoch}.pth".format(save_dir=save_dir, seq_name=seq_name, count=count, epoch=epoch + 1)))
-
-stop_time = timeit.default_timer()
-print('Online training time: ' + str(stop_time - start_time))
+        torch.save(net.state_dict(), os.path.join("{save_dir}/{seq_name}_{inst}_epoch-{epoch}.pth".format(save_dir=save_dir, seq_name=seq_name, inst=inst, epoch=epoch + 1)))
 
 
-# Testing Phase
-if vis_res:
-    import matplotlib.pyplot as plt
-    plt.close("all")
-    plt.ion()
-    f, ax_arr = plt.subplots(1, 3)
+        print('Testing Network')
+        # outputs dir
+        save_dir_res = os.path.join(save_dir, "iter{}/{}_{}".format(str((epoch + 1)/ nAveGrad), seq_name, inst))
+        if not os.path.exists(save_dir_res):
+            os.makedirs(save_dir_res)
 
-save_dir_res = os.path.join(save_dir, 'Results', seq_name)
-if not os.path.exists(save_dir_res):
-    os.makedirs(save_dir_res)
+            # Main Testing Loop
+            for ii, sample_batched in enumerate(testloader):
 
-print('Testing Network')
-# Main Testing Loop
-for ii, sample_batched in enumerate(testloader):
+                img, gt, fname = sample_batched['image'], sample_batched['gt'], sample_batched['fname']
 
-    img, gt, fname = sample_batched['image'], sample_batched['gt'], sample_batched['fname']
+                # Forward of the mini-batch
+                inputs, gts = Variable(img, volatile=True), Variable(gt, volatile=True)
+                if gpu_id >= 0:
+                    inputs, gts = inputs.cuda(), gts.cuda()
 
-    # Forward of the mini-batch
-    inputs, gts = Variable(img, volatile=True), Variable(gt, volatile=True)
-    if gpu_id >= 0:
-        inputs, gts = inputs.cuda(), gts.cuda()
+                outputs = net.forward(inputs)
 
-    outputs = net.forward(inputs)
+                for jj in range(int(inputs.size()[0])):
+                    pred = np.transpose(outputs[-1].cpu().data.numpy()[jj, :, :, :], (1, 2, 0))
+                    pred = 1 / (1 + np.exp(-pred))
+                    pred = np.squeeze(pred)
 
-    for jj in range(int(inputs.size()[0])):
-        pred = np.transpose(outputs[-1].cpu().data.numpy()[jj, :, :, :], (1, 2, 0))
-        pred = 1 / (1 + np.exp(-pred))
-        pred = np.squeeze(pred)
+                    # Save the result, attention to the index jj
+                    sm.imsave(os.path.join(save_dir_res, os.path.basename(fname[jj]) + '.png'), pred)
 
-        # Save the result, attention to the index jj
-        sm.imsave(os.path.join(save_dir_res, os.path.basename(fname[jj]) + '.png'), pred)
-
-        if vis_res:
-            img_ = np.transpose(img.numpy()[jj, :, :, :], (1, 2, 0))
-            gt_ = np.transpose(gt.numpy()[jj, :, :, :], (1, 2, 0))
-            gt_ = np.squeeze(gt)
-            # Plot the particular example
-            ax_arr[0].cla()
-            ax_arr[1].cla()
-            ax_arr[2].cla()
-            ax_arr[0].set_title('Input Image')
-            ax_arr[1].set_title('Ground Truth')
-            ax_arr[2].set_title('Detection')
-            ax_arr[0].imshow(im_normalize(img_))
-            ax_arr[1].imshow(gt_)
-            ax_arr[2].imshow(im_normalize(pred))
-            plt.pause(0.001)
+                    if vis_res:
+                        img_ = np.transpose(img.numpy()[jj, :, :, :], (1, 2, 0))
+                        gt_ = np.transpose(gt.numpy()[jj, :, :, :], (1, 2, 0))
+                        gt_ = np.squeeze(gt)
+                        # Plot the particular example
+                        ax_arr[0].cla()
+                        ax_arr[1].cla()
+                        ax_arr[2].cla()
+                        ax_arr[0].set_title('Input Image')
+                        ax_arr[1].set_title('Ground Truth')
+                        ax_arr[2].set_title('Detection')
+                        ax_arr[0].imshow(im_normalize(img_))
+                        ax_arr[1].imshow(gt_)
+                        ax_arr[2].imshow(im_normalize(pred))
+                        plt.pause(0.001)

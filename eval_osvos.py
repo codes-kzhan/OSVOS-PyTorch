@@ -17,9 +17,11 @@ for vid in videos:
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+count_ = 'dense' if count == -1 else '{}sparse'.format(str(count))
+os.environ['SAVE_DIR'] = './experiments/{}'.format(count_)
 os.environ['COUNT'] = str(count)
 for (vid, inst) in vid_inst:
-    print(f"Evaluating video {vid}, instance {inst}, with {count} sparse points on first frame.")
+    print("Evaluating video {}, instance {}, with {} points on first frame.".format(vid, inst, count_))
     os.environ['SEQ_NAME'] = str(vid)
     os.environ['INST'] = str(inst)
     exec(open("./train_online.py").read())
