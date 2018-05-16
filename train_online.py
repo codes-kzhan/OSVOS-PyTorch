@@ -171,7 +171,7 @@ def train_osvos_online(seq_name, inst, count, save_dir, gpu_id):
                         pred = np.squeeze(pred)
 
                         # Save the result, attention to the index jj
-                        sm.imsave(os.path.join(save_dir_res, os.path.basename(fname[jj]) + '.png'), pred)
+                        np.save(os.path.join(save_dir_res, os.path.basename(fname[jj]) + '.npy'), pred)
 
                         if vis_res:
                             img_ = np.transpose(img.numpy()[jj, :, :, :], (1, 2, 0))
