@@ -129,7 +129,7 @@ for epoch in range(0, nEpochs):
         running_loss_tr += loss.data[0]
 
         # Print stuff
-        if epoch % (nEpochs//20) == (nEpochs//20 - 1):
+        if nEpochs//20 and epoch % (nEpochs//20) == (nEpochs//20 - 1):
             running_loss_tr /= num_img_tr
             loss_tr.append(running_loss_tr)
 
