@@ -64,6 +64,9 @@ class DAVIS2016(Dataset):
         self.img_list = img_list
         self.labels = labels
 
+        # for fine-tuning from sparse annotations (selected on load)
+        self.sparse_label = None
+
         print('Done initializing ' + fname + ' Dataset')
 
     def __len__(self):
@@ -104,6 +107,19 @@ class DAVIS2016(Dataset):
         if self.labels[idx] is not None:
             gt = np.array(label, dtype=np.uint8)
             gt[gt == 255] = 1  # fg is 255 in DAVIS'16
+
+            # make fixed, sparse label
+            # label will be mostly ignore (255),
+            # with sparse positive (1) and negative (0) annotations
+            # TODO(shelhamer) set sparsity with flag
+            if self.sparse_label is None:
+                points_per_class = 5
+                self.sparse_label = np.full_like(gt, 255)
+                for lbl in (0, 1):
+                    mask_idx = np.where(gt.flat == lbl)[0]
+                    sparse_idx = np.random.choice(mask_idx, size=points_per_class, replace=False)
+                    self.sparse_label.flat[sparse_idx] = lbl
+            gt = self.sparse_label
 
         return img, gt
 
