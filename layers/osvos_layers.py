@@ -25,7 +25,7 @@ def class_balanced_cross_entropy_loss(output, label, size_average=True, batch_av
     Tensor that evaluates the loss
     """
 
-    labels = torch.ge(label, 0.5).float()
+    labels = label.float()
 
     num_labels_pos = torch.sum(labels)
     num_labels_neg = torch.sum(1.0 - labels)

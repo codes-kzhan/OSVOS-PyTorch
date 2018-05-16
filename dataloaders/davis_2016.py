@@ -102,8 +102,8 @@ class DAVIS2016(Dataset):
         img = np.subtract(img, np.array(self.meanval, dtype=np.float32))
 
         if self.labels[idx] is not None:
-                gt = np.array(label, dtype=np.float32)
-                gt = gt/np.max([gt.max(), 1e-8])
+            gt = np.array(label, dtype=np.uint8)
+            gt[gt == 255] = 1  # fg is 255 in DAVIS'16
 
         return img, gt
 
