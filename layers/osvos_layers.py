@@ -27,8 +27,8 @@ def class_balanced_cross_entropy_loss(output, label, size_average=True, batch_av
 
     # mask out ignored pixels
     mask = (label != 255).byte()
-    output = output[mask]
-    label = label[mask]
+    output = output[mask].view(output.size(0), -1)
+    label = label[mask].view(output.size(0), -1).float()
 
     labels = label.float()
 
