@@ -30,18 +30,16 @@ def class_balanced_cross_entropy_loss(output, label, size_average=True, batch_av
     output = output[mask].view(output.size(0), -1)
     label = label[mask].view(output.size(0), -1).float()
 
-    labels = label.float()
-
-    num_labels_pos = torch.sum(labels)
-    num_labels_neg = torch.sum(1.0 - labels)
+    num_labels_pos = torch.sum(label)
+    num_labels_neg = torch.sum(1.0 - label)
     num_total = num_labels_pos + num_labels_neg
 
     output_gt_zero = torch.ge(output, 0).float()
-    loss_val = torch.mul(output, (labels - output_gt_zero)) - torch.log(
+    loss_val = torch.mul(output, (label - output_gt_zero)) - torch.log(
         1 + torch.exp(output - 2 * torch.mul(output, output_gt_zero)))
 
-    loss_pos = torch.sum(-torch.mul(labels, loss_val))
-    loss_neg = torch.sum(-torch.mul(1.0 - labels, loss_val))
+    loss_pos = torch.sum(-torch.mul(label, loss_val))
+    loss_neg = torch.sum(-torch.mul(1.0 - label, loss_val))
 
     final_loss = num_labels_neg / num_total * loss_pos + num_labels_pos / num_total * loss_neg
 
