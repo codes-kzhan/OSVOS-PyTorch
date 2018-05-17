@@ -14,7 +14,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 # Custom includes
-from dataloaders import davis_2016 as db
+from dataloaders import davis_2017 as db
 from dataloaders import custom_transforms as tr
 import scipy.misc as sm
 import networks.vgg_osvos as vo
@@ -93,11 +93,11 @@ composed_transforms = transforms.Compose([tr.RandomHorizontalFlip(),
                                           tr.ScaleNRotate(rots=(-30, 30), scales=(.75, 1.25)),
                                           tr.ToTensor()])
 # Training dataset and its iterator
-db_train = db.DAVIS2016(train=True, db_root_dir=db_root_dir, transform=composed_transforms, seq_name=seq_name)
+db_train = db.DAVIS2017(train=True, db_root_dir=db_root_dir, transform=composed_transforms, seq_name=seq_name)
 trainloader = DataLoader(db_train, batch_size=p['trainBatch'], shuffle=True, num_workers=1)
 
 # Testing dataset and its iterator
-db_test = db.DAVIS2016(train=False, db_root_dir=db_root_dir, transform=tr.ToTensor(), seq_name=seq_name)
+db_test = db.DAVIS2017(train=False, db_root_dir=db_root_dir, transform=tr.ToTensor(), seq_name=seq_name)
 testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
 
 
